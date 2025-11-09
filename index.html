@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ralvek movie studios</title>
+    <link rel="icon" href="photos/ralvek.png">
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Manrope");
+
+      @property --progress {
+        syntax: "<number>";
+        initial-value: 0;
+        inherits: true;
+      }
+
+      :root {
+        --amplitude: 100px;
+        --damping: 0.3;
+        --frequency: 0.5;
+        --circle-size: 60px;
+        transition: --progress 700ms;
+        transition-timing-function: linear;
+      }
+
+      :root:has(input:checked) {
+        --progress: 1;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Arial", sans-serif;
+        overflow-x: hidden;
+        background: #000;
+        color: #fff;
+      }
+
+      /* Circular Menu Styles */
+      .menu-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        flex-flow: column;
+        gap: 20px;
+        list-style: none;
+        z-index: 1000;
+      }
+
+      .menu-container li {
+        display: grid;
+        place-items: center;
+      }
+
+      .circle {
+        position: relative;
+        width: var(--circle-size);
+        height: var(--circle-size);
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        font-size: 1.5rem;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        --oscillation-x: calc(
+          (exp(-1 * var(--damping) * var(--progress) * 25)) * var(--amplitude) *
+            cos(var(--frequency) * (var(--progress) * 25 + var(--i)))
+        );
+        --oscillation-y: calc(
+          (exp(-1 * var(--damping) * var(--progress) * 25)) * var(--amplitude) *
+            sin(var(--frequency) * (var(--progress) * 25 + var(--i)))
+        );
+        cursor: pointer;
+        opacity: calc(var(--progress) * 2);
+        transform: translateY(var(--oscillation-y))
+          translateX(var(--oscillation-x));
+        transition: all 300ms ease;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+      }
+
+      .circle a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .circle:hover {
+        background: linear-gradient(135deg, #764ba2, #f093fb);
+        box-shadow: 0 6px 25px rgba(118, 75, 162, 0.6);
+        transform: translateY(var(--oscillation-y))
+          translateX(var(--oscillation-x)) scale(1.1);
+      }
+
+      .unfold {
+        display: grid;
+        place-items: center;
+        position: relative;
+        width: var(--circle-size);
+        height: var(--circle-size);
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5);
+        transition: all 200ms ease;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .unfold:hover {
+        background: linear-gradient(135deg, #764ba2, #667eea);
+        box-shadow: 0 6px 30px rgba(102, 126, 234, 0.7);
+      }
+
+      .unfold:has(:active) {
+        transform: scale(1.025);
+      }
+
+      .unfold svg {
+        width: 60%;
+        fill: white;
+      }
+
+      .unfold input {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        opacity: 0;
+      }
+
+      .portal-section {
+        height: 150vh;
+        position: relative;
+        background: #000;
+      }
+
+      .portal-container {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #000;
+      }
+
+      .portal-scene {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .portal {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: all 0.3s ease;
+      }
+
+      /* Portal image as background */
+      .portal-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: 110% 110%;
+        background-position: center;
+        background-repeat: no-repeat;
+        transition: background-position 0s ease-out;
+      }
+
+      /* Atmospheric particles/dust */
+      .particles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      .particle {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.4);
+        border-radius: 50%;
+        filter: blur(1px);
+      }
+
+      /* Rain effect */
+      .rain-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+        overflow: hidden;
+      }
+
+      .raindrop {
+        position: absolute;
+        width: 3px;
+        height: 40px;
+        background: linear-gradient(
+          to bottom,
+          rgba(200, 220, 255, 0.1),
+          rgba(180, 200, 240, 0.8),
+          rgba(160, 180, 220, 0.9)
+        );
+        border-radius: 50% 50% 50% 50% / 10% 10% 90% 90%;
+        opacity: 0.8;
+        box-shadow: 0 0 8px rgba(200, 220, 255, 0.6),
+          0 0 15px rgba(180, 200, 240, 0.3);
+        filter: blur(0.5px);
+      }
+
+      /* Rain layers for depth */
+      .rain-layer-1 {
+        z-index: 3;
+      }
+      .rain-layer-2 {
+        z-index: 2;
+        filter: blur(1px);
+        opacity: 0.6;
+      }
+      .rain-layer-3 {
+        z-index: 1;
+        filter: blur(2px);
+        opacity: 0.4;
+      }
+
+      .white-transition {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(255, 255, 255, 1) 0%,
+          rgba(255, 255, 255, 0.95) 50%,
+          rgba(255, 255, 255, 0.7) 100%
+        );
+        pointer-events: none;
+        opacity: 0;
+        z-index: 10;
+        transition: opacity 0.3s ease;
+      }
+
+      .scroll-indicator {
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+        text-align: center;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+        z-index: 5;
+      }
+
+      .scroll-arrow {
+        display: block;
+        margin-top: 10px;
+        animation: bounce 2s infinite;
+      }
+
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-10px);
+        }
+        60% {
+          transform: translateY(-5px);
+        }
+      }
+
+      /* Timeline Section Styles */
+      .timeline-section {
+        min-height: 100vh;
+        background: #0f0f0f;
+        padding: 100px 20px;
+        position: relative;
+        z-index: 20;
+      }
+
+      .timeline-section .section-title {
+        color: #fff;
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        text-align: center;
+        margin-bottom: 80px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      }
+
+      .timeline {
+        max-width: 1200px;
+        margin: 0 auto;
+        position: relative;
+        padding: 50px 0;
+      }
+
+      .timeline::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #667eea, #764ba2, #f093fb);
+      }
+
+      .timeline-item {
+        margin-bottom: 100px;
+        position: relative;
+        opacity: 0;
+        transform: translateY(50px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+        text-decoration: none;
+        display: block;
+      }
+
+      .timeline-item.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .timeline-item::before {
+        content: attr(data-year);
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+        z-index: 2;
+        box-shadow: 0 0 40px rgba(102, 126, 234, 0.6);
+      }
+
+      .timeline-item:nth-child(odd) .timeline-content {
+        margin-left: auto;
+        margin-right: 60%;
+      }
+
+      .timeline-item:nth-child(even) .timeline-content {
+        margin-left: 60%;
+      }
+
+      .timeline-content {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 40px;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s ease;
+      }
+
+      .timeline-content:hover {
+        transform: scale(1.05);
+      }
+
+      .timeline-content h3 {
+        font-size: 2rem;
+        color: #fff;
+        margin-bottom: 15px;
+      }
+
+      .timeline-content p {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+      }
+
+      .timeline-content img {
+        width: 100%;
+        border-radius: 10px;
+        margin-top: 20px;
+      }
+
+      @media (max-width: 768px) {
+        .timeline::before {
+          left: 20px;
+        }
+
+        .timeline-item::before {
+          left: 20px;
+          width: 80px;
+          height: 80px;
+          font-size: 1rem;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content,
+        .timeline-item:nth-child(even) .timeline-content {
+          margin-left: 120px;
+          margin-right: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Circular Menu -->
+    <ul class="menu-container">
+      <li>
+        <div class="unfold">
+          <input type="checkbox" />
+          <svg
+            clip-rule="evenodd"
+            fill-rule="evenodd"
+            stroke-linejoin="round"
+            stroke-miterlimit="2"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m12 16.495c1.242 0 2.25 1.008 2.25 2.25s-1.008 2.25-2.25 2.25-2.25-1.008-2.25-2.25 1.008-2.25 2.25-2.25zm0-6.75c1.242 0 2.25 1.008 2.25 2.25s-1.008 2.25-2.25 2.25-2.25-1.008-2.25-2.25 1.008-2.25 2.25-2.25zm0-6.75c1.242 0 2.25 1.008 2.25 2.25s-1.008 2.25-2.25 2.25-2.25-1.008-2.25-2.25 1.008-2.25 2.25-2.25z"
+            />
+          </svg>
+        </div>
+      </li>
+      <li class="circle" style="--i: 0" title="About Me">
+        <a href="contact.html"><img src="icons/email_542638.png" alt="Email" style="width: 30px; height: 30px;"></a>
+      </li>
+      </li>
+      <li class="circle" style="--i: 2" title="What's Next">
+        <a href="upcoming.html">🎥</a>
+      </li>
+    </ul>
+
+    <audio
+      id="portal-sound"
+      src="sounds/sci-fi-portal-jump-01-416163.mp3"
+      preload="auto"
+      playsinline
+    ></audio>
+    <audio
+      id="click-sound"
+      src="sounds/mouse-click-405459.mp3"
+      preload="auto"
+    ></audio>
+    <div class="rain-container" id="rainContainer"></div>
+
+    <div class="portal-section" id="portalSection">
+      <div class="portal-container">
+        <div class="portal-scene">
+          <div class="portal" id="portal">
+            <div class="portal-image"></div>
+            <div class="particles" id="particles"></div>
+          </div>
+        </div>
+
+        <div class="scroll-indicator" id="scrollIndicator">
+          <div>Scroll to enter</div>
+          <div class="scroll-arrow">↓</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="white-transition" id="whiteTransition"></div>
+
+    <!-- Interactive Timeline Section -->
+    <div class="timeline-section">
+      <h2 class="section-title">Our Journey</h2>
+      <div class="timeline">
+        <a href="poster project.html" class="timeline-item" data-year="2023">
+          <div class="timeline-content">
+            <h3>poster project</h3>
+            <p>my start in to meida</p>
+            <img
+              src="https://images.steamusercontent.com/ugc/857234126991079163/66F3363D337A6479CF71C56242756B83938D3064/?imw=1024&imh=684&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true"
+              alt="Timeline 2020"
+            />
+          </div>
+        </a>
+        <a
+          href="The dark echos of 1939.html"
+          class="timeline-item"
+          data-year="2023"
+        >
+          <div class="timeline-content">
+            <h3>The dark echo's of 1939</h3>
+            <p>mfp small film</p>
+            <img src="photos/the dark echos of 1939.png" alt="Timeline 2021" />
+          </div>
+        </a>
+        <a href="#" class="timeline-item" data-year="2023">
+          <div class="timeline-content">
+            <h3>Timeline 2023</h3>
+            <p>A look into what's coming next.</p>
+            <img
+              src="https://picsum.photos/400/300?random=15"
+              alt="Timeline 2023"
+            />
+          </div>
+        </a>
+        <a href="#" class="timeline-item" data-year="2025">
+          <div class="timeline-content">
+            <h3>this page has not been done</h3>
+            <p>this page has not been done</p>
+            <img
+              src="https://picsum.photos/400/300?random=16"
+              alt="Timeline 2025"
+            />
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script>
+      gsap.registerPlugin(ScrollTrigger);
+
+      const portalImage = document.querySelector(".portal-image");
+      portalImage.style.backgroundImage = "url('photos/home page photo.png')";
+      const portalSound = document.getElementById("portal-sound");
+
+      // Create 3D rain effect with multiple layers
+      const rainContainer = document.getElementById("rainContainer");
+
+      function createRaindrop(layer) {
+        const raindrop = document.createElement("div");
+        raindrop.className = `raindrop rain-layer-${layer}`;
+        raindrop.style.left = Math.random() * 100 + "%";
+
+        // Different sizes and speeds based on layer (depth)
+        let size, speed, opacity;
+        if (layer === 1) {
+          // Close layer - bigger, faster, more visible
+          size = 1.2;
+          speed = Math.random() * 0.4 + 0.4;
+          opacity = Math.random() * 0.3 + 0.7;
+        } else if (layer === 2) {
+          // Middle layer
+          size = 0.9;
+          speed = Math.random() * 0.4 + 0.6;
+          opacity = Math.random() * 0.2 + 0.5;
+        } else {
+          // Far layer - smaller, slower, more transparent
+          size = 0.6;
+          speed = Math.random() * 0.4 + 0.9;
+          opacity = Math.random() * 0.2 + 0.3;
+        }
+
+        raindrop.style.transform = `scale(${size})`;
+        rainContainer.appendChild(raindrop);
+
+        gsap.fromTo(
+          raindrop,
+          { y: -50 },
+          {
+            y: window.innerHeight + 50,
+            duration: speed,
+            ease: "none",
+            onComplete: () => raindrop.remove(),
+          }
+        );
+      }
+
+      // Create raindrops continuously across all layers
+      setInterval(() => {
+        createRaindrop(1); // Close layer
+        if (Math.random() > 0.3) createRaindrop(2); // Middle layer
+        if (Math.random() > 0.5) createRaindrop(3); // Far layer
+      }, 100);
+
+      // 3D parallax effect on mouse move
+      document.addEventListener("mousemove", (e) => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 20;
+        const y = (e.clientY / window.innerHeight - 0.5) * 20;
+
+        portalImage.style.backgroundPosition = `calc(50% + ${x}px) calc(50% + ${y}px)`;
+      });
+
+      // Create atmospheric particles
+      const particlesContainer = document.getElementById("particles");
+      for (let i = 0; i < 50; i++) {
+        const particle = document.createElement("div");
+        particle.className = "particle";
+        const size = Math.random() * 4 + 1;
+        particle.style.width = size + "px";
+        particle.style.height = size + "px";
+
+        // Position particles more around the portal opening
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * 40 + 10;
+        const x = 50 + Math.cos(angle) * distance;
+        const y = 50 + Math.sin(angle) * distance * 1.3;
+
+        particle.style.left = x + "%";
+        particle.style.top = y + "%";
+        particle.style.opacity = Math.random() * 0.6 + 0.2;
+        particlesContainer.appendChild(particle);
+      }
+
+      // Animate particles floating around portal
+      gsap.to(".particle", {
+        y: "random(-30, 30)",
+        x: "random(-30, 30)",
+        duration: "random(3, 6)",
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        stagger: {
+          amount: 3,
+          from: "random",
+        },
+      });
+
+      // Subtle pulsing of particles
+      gsap.to(".particle", {
+        opacity: "random(0.2, 0.8)",
+        duration: "random(2, 4)",
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        stagger: {
+          amount: 2,
+          from: "random",
+        },
+      });
+
+      // Main scroll animation
+      const portalSection = document.getElementById("portalSection");
+      const portal = document.getElementById("portal");
+      const whiteTransition = document.getElementById("whiteTransition");
+      const scrollIndicator = document.getElementById("scrollIndicator");
+
+      let portalSoundPlayed = false;
+
+      ScrollTrigger.create({
+        trigger: portalSection,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 2,
+        onUpdate: (self) => {
+          const progress = self.progress;
+
+          // Play sound when scrolling into the portal
+          if (progress > 0.01 && !portalSoundPlayed) {
+            portalSound.currentTime = 0;
+            portalSound.muted = false;
+            const playPromise = portalSound.play();
+            if (playPromise !== undefined) {
+              playPromise.catch((error) => {
+                console.error("Audio could not be played:", error);
+              });
+            }
+            portalSoundPlayed = true;
+          }
+
+          // Reset sound if scrolling back to the top
+          if (progress < 0.01) {
+            portalSoundPlayed = false;
+          }
+
+          // Scale portal as we move through it
+          const scale = 1 + progress * 10;
+          portal.style.transform = `scale(${scale})`;
+
+          // Rotate particles
+          const rotation = progress * 90;
+          particlesContainer.style.transform = `rotate(${rotation}deg)`;
+
+          // White transition overlay - starts earlier and more intense
+          if (progress > 0.5) {
+            const whiteOpacity = (progress - 0.5) * 2;
+            whiteTransition.style.opacity = Math.min(whiteOpacity, 1);
+          } else {
+            whiteTransition.style.opacity = 0;
+          }
+
+          // Hide scroll indicator
+          if (progress > 0.05) {
+            scrollIndicator.style.opacity = 0;
+          } else {
+            scrollIndicator.style.opacity = 1;
+          }
+        },
+      });
+
+      // Timeline scroll animation
+      const timelineItems = document.querySelectorAll(".timeline-item");
+
+      const timelineObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+            }
+          });
+        },
+        {
+          threshold: 0.3,
+        }
+      );
+
+      timelineItems.forEach((item) => {
+        timelineObserver.observe(item);
+      });
+
+      // Add click sound to Our Journey section
+      const clickSound = document.getElementById("click-sound");
+      const journeySection = document.querySelector(".timeline-section");
+
+      if (journeySection) {
+        journeySection.addEventListener("click", () => {
+          clickSound.currentTime = 0;
+          clickSound.play();
+        });
+      }
+    </script>
+  </body>
+</html>
